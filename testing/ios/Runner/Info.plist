@@ -45,5 +45,16 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>We need camera access to scan QR codes / take photos</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app needs microphone access to record audio</string>
+
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs photo library access to pick images</string>
+
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app uses your location to show nearby places</string>
+
 </dict>
 </plist>
