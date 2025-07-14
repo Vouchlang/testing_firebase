@@ -21,7 +21,7 @@ class ChatScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Center(child: Text('Success123')),
+      body: Center(child: Text('Success')),
     );
   }
 }
