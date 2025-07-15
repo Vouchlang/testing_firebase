@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:testing/widgets/user_image_picker.dart';
 
@@ -17,17 +16,18 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   final _form = GlobalKey<FormState>();
-  var _isLogin = false;
-  var _isObsecure = true;
+  var _isLogin = true;
   var _enteredEmail = '';
   var _enteredPassword = '';
+  var _enteredUsername = '';
+
   File? _selectedImage;
   var _isAuthenticating = false;
 
   void _submit() async {
     final _isValid = _form.currentState!.validate();
 
-    if (!_isValid || _isLogin && _selectedImage == null) {
+    if (!_isValid || !_isLogin && _selectedImage == null) {
       return;
     }
 
@@ -55,14 +55,14 @@ class _AuthScreenState extends State<AuthScreen> {
             .child('${userCredentials.user!.uid}.jpg');
 
         await storageRef.putFile(_selectedImage!);
-        final imageUrl = storageRef.getDownloadURL();
+        final imageUrl = await storageRef.getDownloadURL();
         //* End Upload Image to Firebase
 
         await FirebaseFirestore.instance
             .collection('users')
             .doc(userCredentials.user!.uid)
             .set({
-              'username': 'to be done...',
+              'username': _enteredUsername,
               'email': _enteredEmail,
               'image_url': imageUrl,
             });
@@ -101,13 +101,12 @@ class _AuthScreenState extends State<AuthScreen> {
                     child: SingleChildScrollView(
                       child: Column(
                         children: [
-                          _isLogin
-                              ? SizedBox.shrink()
-                              : UserImagePicker(
-                                  onPickImage: (pickedImage) {
-                                    _selectedImage = pickedImage;
-                                  },
-                                ),
+                          if (!_isLogin)
+                            UserImagePicker(
+                              onPickImage: (pickedImage) {
+                                _selectedImage = pickedImage;
+                              },
+                            ),
                           TextFormField(
                             keyboardType: TextInputType.emailAddress,
                             textCapitalization: TextCapitalization.none,
@@ -128,28 +127,25 @@ class _AuthScreenState extends State<AuthScreen> {
                               _enteredEmail = value!;
                             },
                           ),
-                          TextFormField(
-                            obscureText: _isObsecure,
-                            decoration: InputDecoration(
-                              labelText: 'Password',
-                              suffixIcon: InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    _isObsecure = !_isObsecure;
-                                  });
-                                },
-                                child: Container(
-                                  margin: EdgeInsets.only(top: 15),
-                                  child: FaIcon(
-                                    _isObsecure
-                                        ? FontAwesomeIcons.eye
-                                        : FontAwesomeIcons.eyeSlash,
-
-                                    size: 15,
-                                  ),
-                                ),
+                          if (!_isLogin)
+                            TextFormField(
+                              decoration: InputDecoration(
+                                labelText: 'Username',
                               ),
+                              enableSuggestions: false,
+                              validator: (value) {
+                                if (value == null ||
+                                    value.isEmpty ||
+                                    value.trim().length < 4) {
+                                  return 'Username must be at least 4 characters long.';
+                                }
+                                return null;
+                              },
+                              onSaved: (value) => _enteredUsername = value!,
                             ),
+                          TextFormField(
+                            obscureText: true,
+                            decoration: InputDecoration(labelText: 'Password'),
                             validator: (value) {
                               if (value == null || value.trim().length < 6) {
                                 return 'Password must be at least 6 characters long.';
